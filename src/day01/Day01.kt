@@ -1,26 +1,51 @@
 package day01
 
-import println
 import readInput
+import readResourceAsBufferedReader
+import kotlin.math.abs
 
 fun main() {
-    fun part1(input: List<String>): Int {
-        return input.size
-    }
+    println("Part 1: ${part1()}")
+    println("Part 2: ${part2()}")
+}
 
-    fun part2(input: List<String>): Int {
-        return input.size
-    }
+fun part1(): Int {
+    val input = readResourceAsBufferedReader("1_1.txt").lines().toList()
+    return part1(input)
+}
 
-    // Test if implementation meets criteria from the description, like:
-    check(part1(listOf("test_input")) == 1)
+fun part1(lines: List<String>): Int {
+    val parsedInput = split(lines)
+    return distanceDiff(parsedInput.first, parsedInput.second)
+}
 
-    // Or read a large test input from the `src/Day01_test.txt` file:
-    val testInput = readInput("Day01_test")
-    check(part1(testInput) == 1)
+fun part2(lines: List<String>): Int {
+    val (left, right) = split(lines)
+    val lookup = right.groupBy { it }.mapValues { (k, v) -> v.size * k }
+    return left.sumOf { lookup.getOrDefault(it, 0) }
+}
 
-    // Read the input from the `src/Day01.txt` file.
-    val input = readInput("Day01")
-    part1(input).println()
-    part2(input).println()
+fun part2(): Int {
+    val input = readResourceAsBufferedReader("1_1.txt").lines().toList()
+    return part2(input)
+}
+
+fun split(numbers: List<String>): Pair<List<Int>, List<Int>> {
+    val pairs = numbers
+        .map {line -> line.split(Regex("\\s+")).map { it.toInt() } }
+        .foldRight(mutableListOf<Int>() to mutableListOf<Int>()) { (l, r), (lAcc, rAcc) ->
+            lAcc.add(l)
+            rAcc.add(r)
+            lAcc to rAcc
+        }
+
+    return pairs
+}
+
+fun distanceDiff(left: List<Int>, right: List<Int>): Int {
+    val leftSorted = left.sorted()
+    val rightSorted = right.sorted()
+
+    return leftSorted.zip(rightSorted)
+        .sumOf { (l, r) -> abs(l - r) }
 }
