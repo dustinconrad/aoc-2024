@@ -1,6 +1,5 @@
 package day01
 
-import readInput
 import readResourceAsBufferedReader
 import kotlin.math.abs
 
