@@ -4,7 +4,7 @@ import readResourceAsBufferedReader
 
 fun main() {
     println("Part 1: ${part1()}")
-    //println("Part 2: ${part2()}")
+    println("Part 2: ${part2()}")
 }
 
 fun part1(): Int {
@@ -18,11 +18,16 @@ fun part1(input: List<String>): Int {
 
 fun part2(): Int {
     val input = readResourceAsBufferedReader("4_1.txt").lines().toList()
-    return 2
+    return part2(input)
 }
 
 fun part2(input: List<String>): Int {
-    return 2
+    val downRight = findDownRight(input, "MAS", 1).toSet()
+    val downLeft = findDownLeft(input, "MAS", 1).toSet()
+
+    val exes = downRight.intersect(downLeft)
+
+    return exes.size
 }
 
 fun findHorizontal(grid: List<String>, word: String, returnIdx: Int = 0): List<Pair<Int,Int>> {
