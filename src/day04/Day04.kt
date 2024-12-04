@@ -25,90 +25,80 @@ fun part2(input: List<String>): Int {
     return 2
 }
 
-fun findLtoR(grid: List<String>, word: String): Int {
-    return grid.sumOf{ Regex(word).findAll(it).toList().size }
+fun findHorizontal(grid: List<String>, word: String, returnIdx: Int = 0): List<Pair<Int,Int>> {
+    val starting = grid.indices.map { it to 0 }
+    val lines = iterateGrid(starting, grid.lastIndex, grid[0].lastIndex) { (y, x) -> y to x + 1}
+
+    val foundWords = lines.flatMap { findInLine(grid, it, word, returnIdx) }
+    val foundReversed = lines.flatMap { findInLine(grid, it, word.reversed(), returnIdx) }
+
+    return foundWords + foundReversed
 }
 
-fun findRtoL(grid: List<String>, word: String): Int {
-    return findLtoR(grid, word.reversed())
+fun findVertical(grid: List<String>, word: String, returnIdx: Int = 0): List<Pair<Int,Int>> {
+    val starting = grid[0].indices.map { 0 to it }
+    val lines = iterateGrid(starting, grid.lastIndex, grid[0].lastIndex) { (y, x) -> y + 1 to x}
+
+    val foundWords = lines.flatMap { findInLine(grid, it, word, returnIdx) }
+    val foundReversed = lines.flatMap { findInLine(grid, it, word.reversed(), returnIdx) }
+
+    return foundWords + foundReversed
 }
 
-private fun topToBottom(grid: List<String>): List<String> =
-    grid[0].indices.map { col -> grid.joinToString("") { line -> line[col].toString() } }
-
-fun findTtoB(grid: List<String>, word: String): Int {
-    return findLtoR(topToBottom(grid), word)
-}
-
-fun findBtoT(grid: List<String>, word: String): Int {
-    return findRtoL(topToBottom(grid), word)
-}
-
-private fun upperLeftToBottomRight(grid: List<String>): List<String> {
+fun findDownRight(grid: List<String>, word: String, returnIdx: Int = 0): List<Pair<Int,Int>> {
     val startCol = grid.indices.map { it to 0 }
     val startRow = grid[0].indices.map { 0 to it }
 
-    fun coords(s: Pair<Int,Int>) = generateSequence(s) { (y, x) ->
-        if (y < grid.lastIndex && x < grid[0].lastIndex) {
-            y + 1 to x + 1
-        } else {
-            null
-        }
-    }
+    val starting = (startCol + startRow).toSet()
 
-    val allStarts = (startCol + startRow).toSet()
+    val lines = iterateGrid(starting, grid.lastIndex, grid[0].lastIndex) { (y, x) -> y + 1 to x + 1}
 
-    return allStarts.map { coords(it).toList() }
-        .map { line -> line.joinToString("") { (y, x) -> grid[y][x].toString() } }
+    val foundWords = lines.flatMap { findInLine(grid, it, word, returnIdx) }
+    val foundReversed = lines.flatMap { findInLine(grid, it, word.reversed(), returnIdx) }
+
+    return foundWords + foundReversed
 }
 
-fun findUltoBr(grid: List<String>, word: String): Int {
-    return findLtoR(upperLeftToBottomRight(grid), word)
-}
-
-fun findBrtoUl(grid: List<String>, word: String): Int {
-    return findRtoL(upperLeftToBottomRight(grid), word)
-}
-
-private fun upperRightToBottomLeft(grid: List<String>): List<String> {
+fun findDownLeft(grid: List<String>, word: String, returnIdx: Int = 0): List<Pair<Int,Int>> {
     val startCol = grid.indices.map { it to grid[0].lastIndex }
     val startRow = grid[0].indices.map { 0 to it }
 
-    fun coords(s: Pair<Int,Int>) = generateSequence(s) { (y, x) ->
-        if (y < grid.lastIndex && x > 0) {
-            y + 1 to x - 1
+    val starting = (startCol + startRow).toSet()
+
+    val lines = iterateGrid(starting, grid.lastIndex, grid[0].lastIndex) { (y, x) -> y + 1 to x - 1}
+
+    val foundWords = lines.flatMap { findInLine(grid, it, word, returnIdx) }
+    val foundReversed = lines.flatMap { findInLine(grid, it, word.reversed(), returnIdx) }
+
+    return foundWords + foundReversed
+}
+
+private fun findInLine(grid: List<String>, coords: List<Pair<Int,Int>>, word: String, returnIdx: Int = 0): List<Pair<Int,Int>> {
+    return coords.windowed(word.length)
+        .filter {
+            val letters = it.joinToString("") { (y,x) -> grid[y][x].toString() }
+            letters == word
+        }.map { it[returnIdx] }
+}
+
+private fun iterateGrid(starting: Iterable<Pair<Int,Int>>, maxRow: Int, maxCol: Int, generate: (Pair<Int, Int>) -> Pair<Int, Int>): List<List<Pair<Int,Int>>> {
+    fun coords(s: Pair<Int,Int>) = generateSequence(s) { p ->
+        val (nextY, nextX) = generate(p)
+        if (nextY in 0..maxCol && nextX in 0 .. maxRow) {
+            nextY to nextX
         } else {
             null
         }
     }
 
-    val allStarts = (startCol + startRow).toSet()
-
-    return allStarts.map { coords(it).toList() }
-        .map { line -> line.joinToString("") { (y, x) -> grid[y][x].toString() } }
-}
-
-fun findUrtoBl(grid: List<String>, word: String): Int {
-    return findRtoL(upperRightToBottomLeft(grid), word)
-}
-
-fun findBltoUr(grid: List<String>, word: String): Int {
-    return findLtoR(upperRightToBottomLeft(grid), word)
+    return starting.map { coords(it).toList() }
 }
 
 fun findWord(grid: List<String>, word: String): Int {
-    var sum = 0;
-    sum += findLtoR(grid, word)
-    sum += findRtoL(grid, word)
+    val horizontal = findHorizontal(grid, word)
+    val vertical = findVertical(grid, word)
+    val downRight = findDownRight(grid, word)
+    val downLeft = findDownLeft(grid, word)
 
-    sum += findTtoB(grid, word)
-    sum += findBtoT(grid, word)
-
-    sum += findUltoBr(grid, word)
-    sum += findBrtoUl(grid, word)
-
-    sum += findUrtoBl(grid, word)
-    sum += findBltoUr(grid, word)
-
-    return sum
+    return horizontal.size + vertical.size + downRight.size + downLeft.size
 }
