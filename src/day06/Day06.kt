@@ -1,6 +1,7 @@
 package day06
 
-import byEmptyLines
+import Coord
+import DirectedLineSegment
 import readResourceAsBufferedReader
 
 fun main() {
@@ -20,11 +21,12 @@ fun part1(input: List<String>): Int {
 
 fun part2(): Int {
     val input = readResourceAsBufferedReader("6_1.txt").lines().toList()
-    return 2
+    return part2(input)
 }
 
 fun part2(input: List<String>): Int {
-    return 2
+    val obstacles = guardPath2(input)
+    return obstacles.size
 }
 
 val dirs = mapOf(
@@ -55,4 +57,99 @@ fun guardPath(input: List<String>): Set<Pair<Int,Int>> {
     }
 
     return result
+}
+
+fun guardPath2(input: List<String>): Set<Pair<Int,Int>> {
+
+    fun segment(initial: Coord, initialDir: Coord): DirectedLineSegment {
+        var currSegment = initial
+        var segmentDir = initialDir
+        // iterate in dir until object or out of bounds
+        while(true) {
+            val next = (currSegment.first + segmentDir.first) to (currSegment.second + segmentDir.second)
+            if ((next.first !in (0..input.lastIndex)) || (next.second !in (0..input[0].lastIndex))) {
+                break
+            }
+            if (input[next.first][next.second] == '#') {
+                break
+            }
+            currSegment = next
+        }
+        val end = currSegment
+        // reverse direction and iterate
+        segmentDir = initialDir.first * -1 to initialDir.second * -1
+        currSegment = initial
+        while(true) {
+            val next = (currSegment.first + segmentDir.first) to (currSegment.second + segmentDir.second)
+            if ((next.first !in (0..input.lastIndex)) || (next.second !in (0..input[0].lastIndex))) {
+                break
+            }
+            if (input[next.first][next.second] == '#') {
+                break
+            }
+            currSegment = next
+        }
+        val start = currSegment
+
+        return DirectedLineSegment(
+            initialDir, start to end
+        )
+    }
+
+    var curr = input.mapIndexed { row, line -> row to line.indexOf("^") }
+        .first { it.second != -1 }
+
+    val verticalSegments = mutableMapOf<Int,MutableSet<DirectedLineSegment>>()
+    val horizontalSegments = mutableMapOf<Int,MutableSet<DirectedLineSegment>>()
+    var dir = -1 to 0
+
+    fun addCurrentSegment() {
+        // compute the segment we are on
+        val currSegment = segment(curr, dir)
+        if (dir.first == 0) {
+            // horizontal
+            horizontalSegments.getOrPut(curr.first) { mutableSetOf() }.add(currSegment)
+        } else {
+            // vertical
+            verticalSegments.getOrPut(curr.second) { mutableSetOf() }.add(currSegment)
+        }
+    }
+    addCurrentSegment()
+
+    val cycles = mutableSetOf<Pair<Int,Int>>()
+
+    while (true) {
+        val next = (curr.first + dir.first) to (curr.second + dir.second)
+
+        if ((next.first !in (0..input.lastIndex)) || (next.second !in (0..input[0].lastIndex))) {
+            break
+        }
+        // if theres an obstacle, this is the dir
+        val maybeDir = dirs[dir]!!
+        if (input[next.first][next.second] == '#') {
+            // guess there was an obstacle
+            dir = maybeDir
+            // compute segment we are on
+            addCurrentSegment()
+        } else {
+            // lets pretend there was an obstacle
+            if (maybeDir.first == 0) {
+                // get potential horizontal segment we are on
+                val alreadyTrodden = horizontalSegments[curr.first] ?: emptySet()
+                if (alreadyTrodden.any { ls -> maybeDir == ls.dir && ls.containsCoord(curr) } ) {
+                    cycles.add(next)
+                }
+            } else {
+                // get potential vertical segment we are on
+                val alreadyTrodden = verticalSegments[curr.second] ?: emptySet()
+                if (alreadyTrodden.any { ls -> maybeDir == ls.dir && ls.containsCoord(curr) } ) {
+                    cycles.add(next)
+                }
+            }
+
+            curr = next
+        }
+    }
+
+    return cycles
 }

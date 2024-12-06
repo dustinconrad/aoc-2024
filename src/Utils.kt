@@ -1,8 +1,11 @@
 import java.io.BufferedReader
+import java.lang.IllegalArgumentException
 import java.math.BigInteger
 import java.security.MessageDigest
 import kotlin.io.path.Path
 import kotlin.io.path.readText
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.sqrt
 
 /**
@@ -102,4 +105,28 @@ fun lcm(vararg numbers: Long): Long {
     val gcd = extendedEuclidean(a, b).gcd
     val result = (a * b) / gcd;
     return numbers.drop(2).fold(result) { acc, n -> lcm(acc, n) }
+}
+
+typealias Coord = Pair<Int,Int>
+
+typealias LineSegment = Pair<Coord,Coord>
+
+data class DirectedLineSegment(val dir: Coord, val segment: LineSegment) {
+
+    init {
+        val (start, end) = segment
+        if (start.first != end.first && start.second != end.second) {
+            throw IllegalArgumentException()
+        }
+    }
+
+    fun containsCoord(coord: Coord): Boolean {
+        val (start, end) = segment
+        return if (start.first == end.first) {
+            coord.first == start.first && coord.second in min(start.second, end.second) .. max(start.second, end.second)
+        } else {
+            coord.second == start.second && coord.first in min(start.first, end.first) .. max(start.first, end.first)
+        }
+    }
+
 }
