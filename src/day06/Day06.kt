@@ -3,9 +3,11 @@ package day06
 import Coord
 import DirectedLineSegment
 import readResourceAsBufferedReader
+import java.lang.StringBuilder
 
 fun main() {
     println("Part 1: ${part1()}")
+    // 422 too low
     println("Part 2: ${part2()}")
 }
 
@@ -59,9 +61,7 @@ fun guardPath(input: List<String>): Set<Pair<Int,Int>> {
     return result
 }
 
-fun guardPath2(input: List<String>): Set<Pair<Int,Int>> {
-
-    fun segment(initial: Coord, initialDir: Coord): DirectedLineSegment {
+fun segment(input: List<StringBuilder>, initial: Coord, initialDir: Coord): DirectedLineSegment {
         var currSegment = initial
         var segmentDir = initialDir
         // iterate in dir until object or out of bounds
@@ -96,6 +96,8 @@ fun guardPath2(input: List<String>): Set<Pair<Int,Int>> {
         )
     }
 
+fun guardPath2(input: List<String>): Set<Pair<Int,Int>> {
+    val grid = input.map { StringBuilder(it) }
     var curr = input.mapIndexed { row, line -> row to line.indexOf("^") }
         .first { it.second != -1 }
 
@@ -105,7 +107,7 @@ fun guardPath2(input: List<String>): Set<Pair<Int,Int>> {
 
     fun addCurrentSegment() {
         // compute the segment we are on
-        val currSegment = segment(curr, dir)
+        val currSegment = segment(grid, curr, dir)
         if (dir.first == 0) {
             // horizontal
             horizontalSegments.getOrPut(curr.first) { mutableSetOf() }.add(currSegment)
