@@ -105,6 +105,7 @@ fun guardPath2(input: List<String>): Set<Pair<Int,Int>> {
     val horizontalSegments = mutableMapOf<Int,MutableSet<DirectedLineSegment>>()
     var dir = -1 to 0
 
+    // add the current position/direction as a segment
     fun addCurrentSegment() {
         // compute the segment we are on
         val currSegment = segment(grid, curr, dir)
@@ -117,6 +118,25 @@ fun guardPath2(input: List<String>): Set<Pair<Int,Int>> {
         }
     }
     addCurrentSegment()
+
+    // for a hypothetical placement, check if it ultimately is a cycle
+    fun hypotheticalCycle(initial: Coord, initialDir: Coord, next: Coord): Boolean {
+        // place block
+        if (grid[next.first][next.second] != '.') {
+            // can't place a block, cant be a cycle
+            return false
+        }
+        grid[next.first][next.second] = '#'
+
+        var hCurr = initial
+        var hCurrDir = initialDir
+
+        
+
+
+
+        grid[next.first][next.second] = '.'
+    }
 
     val cycles = mutableSetOf<Pair<Int,Int>>()
 
