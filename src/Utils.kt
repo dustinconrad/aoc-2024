@@ -108,3 +108,15 @@ fun lcm(vararg numbers: Long): Long {
 }
 
 typealias Coord = Pair<Int,Int>
+
+fun Coord.addCoord(vec: Pair<Int, Int>): Pair<Int, Int> {
+    return this.first + vec.first to this.second + vec.second
+}
+
+fun Coord.subtract(other: Pair<Int, Int>): Pair<Int, Int> {
+    return this.first - other.first to this.second - other.second
+}
+
+fun Coord.negate(): Pair<Int, Int> {
+    return -this.first to -this.second
+}
