@@ -95,6 +95,10 @@ fun maybeCycle(grid: List<StringBuilder>, initialVisited: Set<Pair<Coord,Coord>>
     if (nextChar != '.') {
         return false
     }
+    if (dirs.keys.map { initialNext to it }
+        .any { initialVisited.contains(it) }) {
+        return false
+    }
     grid[initialNext.first][initialNext.second] = '#'
     val visited = initialVisited.toMutableSet()
     var curr = initialCurr
