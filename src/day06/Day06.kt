@@ -8,6 +8,7 @@ fun main() {
     println("Part 1: ${part1()}")
     // 422 too low
     // 3989 wrong
+    // 2037 wrong
     println("Part 2: ${part2()}")
 }
 
@@ -27,8 +28,8 @@ fun part2(): Int {
 }
 
 fun part2(input: List<String>): Int {
-    //val obstacles = guardPath2(input)
-    return 2
+    val obstacles = guardPath2(input)
+    return obstacles.size
 }
 
 val dirs = mapOf(
@@ -68,6 +69,7 @@ fun guardPath2(input: List<String>): Set<Pair<Int, Int>> {
 
     val visited = mutableSetOf<Pair<Coord,Coord>>()
     var dir = -1 to 0
+    val cycles = mutableSetOf<Coord>()
 
     while (true) {
         visited.add(curr to dir)
@@ -78,20 +80,45 @@ fun guardPath2(input: List<String>): Set<Pair<Int, Int>> {
         if (grid[next.first][next.second] == '#') {
             dir = dirs[dir]!!
         } else {
+            if(maybeCycle(grid, visited, curr, dir, next)) {
+                cycles.add(next)
+            }
             curr = next
         }
     }
 
-    return visited.map { it.first }.toSet()
+    return cycles
 }
 
-//fun maybeCycle(grid: List<StringBuilder>, visited: Set<Pair<Coord,Coord>>, curr: Coord, currDir: Coord,  next: Coord): Boolean {
-//    val nextChar = grid[next.first][next.second]
-//    if (nextChar != '.' ) {
-//        return false
-//    }
-//    grid[next.first][next.second] = '#'
-//
-//
-//    grid[next.first][next.second] = nextChar
-//}
+fun maybeCycle(grid: List<StringBuilder>, initialVisited: Set<Pair<Coord,Coord>>, initialCurr: Coord, initialDir: Coord, initialNext: Coord): Boolean {
+    val nextChar = grid[initialNext.first][initialNext.second]
+    if (nextChar != '.') {
+        return false
+    }
+    grid[initialNext.first][initialNext.second] = '#'
+    val visited = initialVisited.toMutableSet()
+    var curr = initialCurr
+    var dir = dirs[initialDir]!!
+
+    var cycle = false
+
+    while (true) {
+        if (visited.contains(curr to dir)) {
+            cycle = true
+            break
+        }
+        visited.add(curr to dir)
+        val next = (curr.first + dir.first) to (curr.second + dir.second)
+        if ((next.first !in (0..grid.lastIndex)) || (next.second !in (0..grid[0].lastIndex))) {
+            break
+        }
+        if (grid[next.first][next.second] == '#') {
+            dir = dirs[dir]!!
+        } else {
+            curr = next
+        }
+    }
+
+    grid[initialNext.first][initialNext.second] = nextChar
+    return cycle
+}
