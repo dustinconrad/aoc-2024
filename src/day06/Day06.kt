@@ -8,6 +8,7 @@ import java.lang.StringBuilder
 fun main() {
     println("Part 1: ${part1()}")
     // 422 too low
+    // 3989 wrong
     println("Part 2: ${part2()}")
 }
 
