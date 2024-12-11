@@ -8,29 +8,31 @@ fun main() {
     println("Part 2: ${part2()}")
 }
 
-fun part1(): Int {
+fun part1(): Long {
     val input = readResourceAsBufferedReader("11_1.txt").readLine()
 
-    return part1(input).size
+    return part1(input)
 }
 
-fun part1(input: String, iterations: Int = 25): List<BigInteger> {
-    var result = input.split(" ").map { BigInteger(it) }
+fun part1(input: String, iterations: Int = 25): Long {
+    var initial = input.split(" ").map { BigInteger(it) }
+        .map { it to 1L }
+        .toMap()
 
     repeat(iterations) {
-        result = result.flatMap { blink(it) }
+        initial = blink2(initial)
     }
 
-    return result
+    return initial.values.sum()
 }
 
-fun part2(): Int {
+fun part2(): Long {
     val input = readResourceAsBufferedReader("11_1.txt").readLine()
-    return part1(input, 75).size
+    return part2(input)
 }
 
-fun part2(input: List<String>): Int {
-    return 2
+fun part2(input: String, iterations: Int = 75): Long {
+    return part1(input, iterations)
 }
 
 fun blink(stone: BigInteger): List<BigInteger> {
@@ -44,4 +46,10 @@ fun blink(stone: BigInteger): List<BigInteger> {
         }
         else -> listOf(stone.multiply(BigInteger.valueOf(2024)))
     }
+}
+
+fun blink2(stones: Map<BigInteger, Long>): Map<BigInteger, Long> {
+    return stones.flatMap { (k, v) -> blink(k).map { it to v } }
+        .groupBy { it.first }
+        .mapValues { (k, v) -> v.sumOf { it.second } }
 }
