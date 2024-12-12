@@ -7,7 +7,7 @@ import java.math.BigInteger
 
 fun main() {
     println("Part 1: ${part1()}")
-    //println("Part 2: ${part2()}")
+    println("Part 2: ${part2()}")
 }
 
 fun part1(): Int {
@@ -22,13 +22,15 @@ fun part1(input: List<String>): Int {
     return regions.sumOf { it.price }
 }
 
-fun part2(): Long {
-    val input = readResourceAsBufferedReader("12_1.txt").readLine()
+fun part2(): Int {
+    val input = readResourceAsBufferedReader("12_1.txt").lines().toList()
     return part2(input)
 }
 
-fun part2(input: String, iterations: Int = 75): Long {
-    return 2
+fun part2(input: List<String>): Int {
+    val regions = regions(input)
+
+    return regions.sumOf { it.price2 }
 }
 
 fun regions(input: List<String>): Set<Region> {
@@ -95,4 +97,81 @@ data class Region(val coords: Set<Coord>) {
     }
 
     val price = area * perimeter
+
+    val sideCount by lazy {
+        // get all top segments
+        val topSegments = horizontalSegments(-1 to 0)
+        val bottomSegments = horizontalSegments(1 to 0)
+        val leftSegments = verticalSegments(0 to -1)
+        val rightSegments = verticalSegments(0 to 1)
+
+        topSegments.size + bottomSegments.size + leftSegments.size + rightSegments.size
+    }
+
+    val price2 = area * sideCount
+
+    private fun horizontalSegments(dir: Coord): Set<Set<Coord>> {
+        val perims = mutableSetOf<Set<Coord>>()
+        val coordsWithPerim = coords.filter {
+            !coords.contains(it.addCoord(dir))
+        }.toMutableSet()
+
+        while (coordsWithPerim.isNotEmpty()) {
+            val currLine = mutableSetOf<Coord>()
+            val candidate = coordsWithPerim.first()
+            coordsWithPerim.remove(candidate)
+            currLine.add(candidate)
+            // iterate left
+            var left = candidate.second - 1
+            while (coordsWithPerim.contains(candidate.first to left)) {
+                val p = candidate.first to left
+                currLine.add(p)
+                coordsWithPerim.remove(p)
+                left--
+            }
+            // iterate right
+            var right = candidate.second + 1
+            while (coordsWithPerim.contains(candidate.first to right)) {
+                val p = candidate.first to right
+                currLine.add(p)
+                coordsWithPerim.remove(p)
+                right++
+            }
+            perims.add(currLine)
+        }
+        return perims
+    }
+
+    private fun verticalSegments(dir: Coord): Set<Set<Coord>> {
+        val perims = mutableSetOf<Set<Coord>>()
+        val coordsWithPerim = coords.filter {
+            !coords.contains(it.addCoord(dir))
+        }.toMutableSet()
+
+        while (coordsWithPerim.isNotEmpty()) {
+            val currLine = mutableSetOf<Coord>()
+            val candidate = coordsWithPerim.first()
+            coordsWithPerim.remove(candidate)
+            currLine.add(candidate)
+            // iterate up
+            var up = candidate.first - 1
+            while (coordsWithPerim.contains(up to candidate.second)) {
+                val p = up to candidate.second
+                currLine.add(p)
+                coordsWithPerim.remove(p)
+                up--
+            }
+            // iterate down
+            var down = candidate.first + 1
+            while (coordsWithPerim.contains(down to candidate.second)) {
+                val p = down to candidate.second
+                currLine.add(p)
+                coordsWithPerim.remove(p)
+                down++
+            }
+            perims.add(currLine)
+        }
+        return perims
+    }
+
 }

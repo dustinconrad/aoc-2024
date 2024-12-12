@@ -48,4 +48,16 @@ class Day12Test {
         assertEquals(1930, part1(input))
     }
 
+    @Test
+    fun testPart2_1() {
+        val input = """
+        AAAA
+        BBCD
+        BBCC
+        EEEC
+        """.trimIndent().lines().toList()
+
+        assertEquals(80, part2(input))
+    }
+
 }

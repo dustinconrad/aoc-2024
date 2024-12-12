@@ -120,3 +120,5 @@ fun Coord.subtract(other: Pair<Int, Int>): Pair<Int, Int> {
 fun Coord.negate(): Pair<Int, Int> {
     return -this.first to -this.second
 }
+
+typealias Segment = Pair<Coord, Coord>
