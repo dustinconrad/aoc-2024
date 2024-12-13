@@ -7,6 +7,7 @@ import java.math.BigInteger
 fun main() {
     println("Part 1: ${part1()}")
     // 83341936921125 too high
+    // 83029436920891 right
     println("Part 2: ${part2()}")
 }
 
@@ -44,14 +45,13 @@ data class Machine(val buttonA: Button, val buttonB: Button, val x: BigInteger, 
 
     constructor(buttonA: Button, buttonB: Button, x: Long, y: Long): this(buttonA, buttonB, BigInteger.valueOf(x), BigInteger.valueOf(y))
 
-    private val bNum = y * buttonA.x - buttonA.y * x
-    private val bDenom = buttonA.x * buttonB.y - buttonA.y * buttonB.x
+    private val det = buttonA.x * buttonB.y - buttonA.y * buttonB.x
 
-    val isPossible = bNum % bDenom == BigInteger.ZERO
+    val isPossible = (buttonA.x * y - buttonA.y * x) % det == BigInteger.ZERO && (buttonB.y * x - buttonB.x * y) % det == BigInteger.ZERO
 
-    val bCount = bNum / bDenom
+    val bCount = (buttonA.x * y - buttonA.y * x) / det
 
-    val aCount = (x - buttonB.x * bCount)/buttonA.x
+    val aCount = (buttonB.y * x - buttonB.x * y) / det
 
     val tokens = aCount * BigInteger.valueOf(3) + bCount
 
