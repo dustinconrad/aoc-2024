@@ -1,13 +1,14 @@
 package day14
 
 import Coord
+import addCoord
 import readResourceAsBufferedReader
 import kotlin.math.abs
 import kotlin.math.sign
 
 fun main() {
-    println("Part 1: ${part1()}")
-    //println("Part 2: ${part2()}")
+    //println("Part 1: ${part1()}")
+    part2(0)
 }
 
 fun part1(): Int {
@@ -20,19 +21,92 @@ fun part1(input: List<String>, seconds: Int = 100, maxY: Int = 103, maxX: Int = 
     val robots = input.map { Robot.parse(it) }
         .map { it.simulate(seconds, maxY, maxX) }
 
-    return robots.groupBy { it.quadrant(maxY, maxX) }
-        .filter { (k, v) -> k >= 0 }
-        .map { it.value.size }
+    return quadrants(robots, maxY, maxX)
+        .values
         .reduce { l, r -> l * r }
 }
 
-fun part2(): Long {
-    val input = readResourceAsBufferedReader("14_1.txt").lines().toList()
-    return part2(input)
+private fun quadrants(robots: List<Robot>,  maxY: Int = 103, maxX: Int = 101): Map<Int,Int> {
+    return robots.groupBy { it.quadrant(maxY, maxX) }
+        .filter { (k, v) -> k >= 0 }
+        .mapValues { it.value.size }
 }
 
-fun part2(input: List<String>): Long {
+fun part2(initial: Int): Long {
+    val input = readResourceAsBufferedReader("14_1.txt").lines().toList()
+    return part2(input, initial)
+}
+
+fun part2(input: List<String>, initial: Int, maxY: Int = 103, maxX: Int = 101): Long {
+    var robots = input.map { Robot.parse(it) }
+
+    var i = initial
+    while(true) {
+        i++
+        robots = robots.map { it.simulate(1, maxY, maxX) }
+        if (largeObject(robots)) {
+            println(i)
+            println(visualizeRobots(robots, maxY, maxX))
+        }
+    }
+
     return 2
+}
+
+fun visualizeRobots(robots: List<Robot>, maxY: Int = 103, maxX: Int = 101): String {
+    val r = robots.map { it.p }.toSet()
+
+    return (0 until maxY).joinToString("\n") { y ->
+        (0 until maxX).map { x ->
+            if (r.contains(y to x)) {
+                "#"
+            } else {
+                "."
+            }
+        }.joinToString("")
+    }
+}
+
+private val dirs = listOf(
+    (-1 to 0),
+    (0 to 1),
+    (1 to 0),
+    (0 to -1)
+)
+
+fun largeObject(robots: List<Robot>): Boolean {
+    val remainingRobots = robots.map { it.p }.toMutableSet()
+
+    val groups = mutableSetOf<Set<Coord>>()
+
+    while(remainingRobots.isNotEmpty()) {
+        val robot = remainingRobots.first()
+        remainingRobots.remove(robot)
+        val group = mutableSetOf<Coord>()
+        group.add(robot)
+
+        val q = ArrayDeque<Coord>()
+        q.add(robot)
+        while (q.isNotEmpty()) {
+            val curr = q.removeFirst()
+
+            dirs.map { curr.addCoord(it) }
+                .filter { remainingRobots.contains(it) }
+                .filter { !group.contains(it) }
+                .forEach {
+                    group.add(it)
+                    q.add(it)
+                }
+        }
+
+        groups.add(group)
+    }
+
+    if (groups.any { it.size >= 50 }) {
+        return true
+    }
+
+    return false
 }
 
 data class Robot(val p: Coord, val v: Coord) {

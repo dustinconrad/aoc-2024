@@ -1,7 +1,5 @@
 package day14
 
-import byEmptyLines
-import java.math.BigInteger
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -77,13 +75,5 @@ class Day14Test {
         """.trimIndent().lines().toList()
 
         assertEquals(12, part1(input, 100, 7, 11))
-    }
-
-    @Test
-    fun testPart2() {
-        val input = """
-        """.trimIndent().lines().toList()
-
-        assertEquals(2, part2(input))
     }
 }
