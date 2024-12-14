@@ -1,22 +1,29 @@
 package day14
 
+import Coord
 import readResourceAsBufferedReader
-import byEmptyLines
-import java.math.BigInteger
+import kotlin.math.abs
+import kotlin.math.sign
 
 fun main() {
     println("Part 1: ${part1()}")
-    println("Part 2: ${part2()}")
+    //println("Part 2: ${part2()}")
 }
 
-fun part1(): Long {
+fun part1(): Int {
     val input = readResourceAsBufferedReader("14_1.txt").lines().toList()
 
     return part1(input)
 }
 
-fun part1(input: List<String>): Long {
-    return 1
+fun part1(input: List<String>, seconds: Int = 100, maxY: Int = 103, maxX: Int = 101): Int {
+    val robots = input.map { Robot.parse(it) }
+        .map { it.simulate(seconds, maxY, maxX) }
+
+    return robots.groupBy { it.quadrant(maxY, maxX) }
+        .filter { (k, v) -> k >= 0 }
+        .map { it.value.size }
+        .reduce { l, r -> l * r }
 }
 
 fun part2(): Long {
@@ -28,47 +35,69 @@ fun part2(input: List<String>): Long {
     return 2
 }
 
-data class Button(val x: BigInteger, val y: BigInteger) {
+data class Robot(val p: Coord, val v: Coord) {
 
-    constructor(x: Long, y: Long): this(BigInteger.valueOf(x), BigInteger.valueOf(y))
-}
+    fun simulate(seconds: Int, maxY: Int, maxX: Int): Robot {
+        var yDiff = v.first * seconds
+        var xDiff = v.second * seconds
 
-data class Machine(val buttonA: Button, val buttonB: Button, val x: BigInteger, val y: BigInteger) {
+        val ySign = yDiff.sign
+        val xSign = xDiff.sign
 
-    constructor(buttonA: Button, buttonB: Button, x: Long, y: Long): this(buttonA, buttonB, BigInteger.valueOf(x), BigInteger.valueOf(y))
+        yDiff = abs(yDiff)
+        xDiff = abs(xDiff)
 
-    private val det = buttonA.x * buttonB.y - buttonA.y * buttonB.x
+        yDiff = yDiff % maxY
+        xDiff = xDiff % maxX
 
-    val isPossible = (buttonA.x * y - buttonA.y * x) % det == BigInteger.ZERO && (buttonB.y * x - buttonB.x * y) % det == BigInteger.ZERO
+        var newY = p.first + ySign * yDiff
+        var newX = p.second + xSign * xDiff
 
-    val bCount = (buttonA.x * y - buttonA.y * x) / det
+        if (newY >= maxY) {
+            newY = newY % maxY
+        }
 
-    val aCount = (buttonB.y * x - buttonB.x * y) / det
+        if (newY < 0) {
+            newY = maxY + newY
+        }
 
-    val tokens = aCount * BigInteger.valueOf(3) + bCount
+        if (newX >= maxX) {
+            newX = newX % maxX
+        }
+
+        if (newX < 0) {
+            newX = maxX + newX
+        }
+
+
+        return this.copy(
+            p = newY to newX
+        )
+    }
+
+    fun quadrant(maxY: Int, maxX: Int): Int {
+        val halfMaxY = maxY / 2
+        val halfMaxX = maxX / 2
+        return when {
+            p.first < halfMaxY && p.second < halfMaxX -> 0
+            p.first > halfMaxY && p.second < halfMaxX -> 1
+            p.first < halfMaxY && p.second > halfMaxX -> 2
+            p.first > halfMaxY && p.second > halfMaxX -> 3
+            else -> -1
+        }
+
+    }
 
     companion object {
 
-        fun parse(lines: String): Machine {
-            val (a, b, prize) = lines.split("\n")
-            val numberPattern = Regex("\\d+")
+        fun parse(line: String): Robot {
+            val pairs = Regex("-?\\d+,-?\\d+")
+            val (pS, vS) = pairs.findAll(line).map { it.value }.toList()
+            val (px, py) = pS.split(",").map { it.toInt() }
+            val (vx, vy) = vS.split(",").map { it.toInt() }
 
-            val (ax, ay) = numberPattern.findAll(a).toList().map { it.value }.map { BigInteger(it) }
-            val (bx, by) = numberPattern.findAll(b).toList().map { it.value }.map { BigInteger(it) }
-            val (px, py) = numberPattern.findAll(prize).toList().map { it.value }.map { BigInteger(it) }
-
-            return Machine(
-                Button(ax, ay),
-                Button(bx, by),
-                px, py
-            )
+            return Robot(py to px, vy to vx)
         }
-
-        fun parse2(lines: String): Machine {
-            val machine = parse(lines)
-            return machine.copy(x = machine.x + BigInteger.valueOf(10000000000000), y = machine.y + BigInteger.valueOf(10000000000000))
-        }
-
 
     }
 
