@@ -7,7 +7,7 @@ import kotlin.math.abs
 import kotlin.math.sign
 
 fun main() {
-    //println("Part 1: ${part1()}")
+    println("Part 1: ${part1()}")
     part2(0)
 }
 
