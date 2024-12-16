@@ -8,6 +8,7 @@ import readResourceAsBufferedReader
 
 fun main() {
     // 146000 wrong
+    // 147628 right
     println("Part 1: ${part1()}")
     println("Part 2: ${part2()}")
 }
@@ -31,6 +32,29 @@ fun part2(): Int {
 }
 
 fun part2(input: List<String>): Int {
+//    val scores = traverse(input)
+//    val end = findInGrid(input, 'E')
+//
+//    val min = dirs.map { end to it }
+//        .minOf { scores.getOrDefault(it, Int.MAX_VALUE) }
+//
+//    val q = ArrayDeque<Pair<Coord,Coord>>()
+//    val visited = mutableSetOf<Pair<Coord,Coord>>()
+//
+//    dirs.map { end to it }
+//        .filter { scores[it] == min }
+//        .forEach {
+//            visited.add(it)
+//            q.add(it)
+//        }
+//
+//    while(q.isNotEmpty()) {
+//        val head = q.removeFirst()
+//        val (hCoord, hDir) = head
+//
+//
+//    }
+
 
     return 2
 }
@@ -49,29 +73,35 @@ fun traverse(maze: List<String>): Map<Pair<Coord,Coord>,Int> {
         val (head, dir ) = first
         val currScore = scores[first]!!
 
-        fun maybeAdd(neighborDir: Coord, score: Int = 0) {
+        fun maybeAdd(neighborDir: Coord) {
             val neighbor = head.addCoord(neighborDir)
             if (maze[neighbor.first][neighbor.second] != '#') {
                 val currentNeighborScore = scores.getOrDefault(neighbor to neighborDir, Int.MAX_VALUE)
-                if (currScore + score + 1 < currentNeighborScore) {
-                    scores[neighbor to neighborDir] = currScore + score + 1
+                if (currScore + 1 <= currentNeighborScore) {
+                    scores[neighbor to neighborDir] = currScore + 1
                     q.add(neighbor to neighborDir)
                 }
+            }
+        }
+
+        fun maybeTurn(neighborDir: Coord) {
+            val turned = head to neighborDir
+            val currTurnedScore = scores.getOrDefault(turned, Int.MAX_VALUE)
+            if (currScore + 1000 <= currTurnedScore) {
+                scores[turned] = currScore + 1000
+                q.add(turned)
             }
         }
 
         // find valid neighbors
         // same dir
         maybeAdd(dir)
-        // opposite
-        val opposite = dir.first * -1 to dir.second * -1
-        maybeAdd(opposite, 2 * 1000)
         // swap
         val swapped = dir.second to dir.first
-        maybeAdd(swapped, 1000)
+        maybeTurn(swapped)
         // swap / negate
         val negativeSwapped = dir.second * -1 to dir.first * -1
-        maybeAdd(negativeSwapped, 1000)
+        maybeTurn(negativeSwapped)
     }
 
     return scores
