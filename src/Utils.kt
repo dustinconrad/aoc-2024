@@ -122,3 +122,22 @@ fun Coord.negate(): Pair<Int, Int> {
 }
 
 typealias Segment = Pair<Coord, Coord>
+
+fun findInGrid(grid: List<String>, target: Char): Coord {
+    return grid.mapIndexed { y, line ->
+        val at = line.indexOf(target)
+        if (at != -1) {
+            y to at
+        } else {
+            null
+        }
+    }.filterNotNull()
+    .first()
+}
+
+val dirs = listOf(
+    (-1 to 0),
+    (0 to 1),
+    (1 to 0),
+    (0 to -1)
+)
