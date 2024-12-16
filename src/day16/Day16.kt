@@ -32,31 +32,10 @@ fun part2(): Int {
 }
 
 fun part2(input: List<String>): Int {
-//    val scores = traverse(input)
-//    val end = findInGrid(input, 'E')
-//
-//    val min = dirs.map { end to it }
-//        .minOf { scores.getOrDefault(it, Int.MAX_VALUE) }
-//
-//    val q = ArrayDeque<Pair<Coord,Coord>>()
-//    val visited = mutableSetOf<Pair<Coord,Coord>>()
-//
-//    dirs.map { end to it }
-//        .filter { scores[it] == min }
-//        .forEach {
-//            visited.add(it)
-//            q.add(it)
-//        }
-//
-//    while(q.isNotEmpty()) {
-//        val head = q.removeFirst()
-//        val (hCoord, hDir) = head
-//
-//
-//    }
+    val paths = paths(input)
+    val uniqueCoords = paths.map { it.first }.toSet()
 
-
-    return 2
+    return uniqueCoords.size
 }
 
 fun traverse(maze: List<String>): Map<Pair<Coord,Coord>,Int> {
@@ -105,4 +84,57 @@ fun traverse(maze: List<String>): Map<Pair<Coord,Coord>,Int> {
     }
 
     return scores
+}
+
+fun paths(maze: List<String>): Set<Pair<Coord,Coord>> {
+    val scores = traverse(maze)
+    val end = findInGrid(maze, 'E')
+
+    val min = dirs.map { end to it }
+        .minOf { scores.getOrDefault(it, Int.MAX_VALUE) }
+
+    val q = ArrayDeque<Pair<Coord,Coord>>()
+    val visited = mutableSetOf<Pair<Coord,Coord>>()
+
+    dirs.map { end to it }
+        .filter { scores[it] == min }
+        .forEach {
+            visited.add(it)
+            q.add(it)
+        }
+
+    while(q.isNotEmpty()) {
+        val head = q.removeFirst()
+        val currScore = scores[head]!!
+        val (hCoord, hDir) = head
+        // either we came from somewhere or we turned in place
+        // where did we come from - reverse direction
+        val reversed = hDir.first * -1 to hDir.second * -1
+        val previous = hCoord.addCoord(reversed)
+        val previousScore = scores.getOrDefault(previous to hDir, Int.MAX_VALUE)
+        if (previousScore == currScore - 1) {
+            visited.add(previous to hDir)
+            q.add(previous to hDir)
+        }
+
+        fun maybeTurned(newDir: Coord) {
+            val turnedPos = hCoord to newDir
+            val turnedScore = scores.getOrDefault(turnedPos, Int.MAX_VALUE)
+            if (turnedScore == currScore - 1000) {
+                visited.add(turnedPos)
+                q.add(turnedPos)
+            }
+        }
+
+        // maybe we turned
+        // swap
+        val swapped = hDir.second to hDir.first
+        maybeTurned(swapped)
+
+        // swap / negate
+        val negativeSwapped = hDir.second * -1 to hDir.first * -1
+        maybeTurned(negativeSwapped)
+    }
+
+    return visited
 }
