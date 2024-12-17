@@ -120,7 +120,7 @@ sealed class OpCode {
     data object Bdv : OpCode() {
         override fun execute(program: Program): Program {
             val numerator = program.a
-            val denominator = 2.shl(comboOperand(program))
+            val denominator = 1.shl(comboOperand(program))
             return program.copy(
                 b = numerator / denominator,
                 ip = program.ip + 2
@@ -131,7 +131,7 @@ sealed class OpCode {
     data object Cdv : OpCode() {
         override fun execute(program: Program): Program {
             val numerator = program.a
-            val denominator = 2.shl(comboOperand(program))
+            val denominator = 1.shl(comboOperand(program))
             return program.copy(
                 c = numerator / denominator,
                 ip = program.ip + 2
