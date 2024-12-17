@@ -52,20 +52,24 @@ fun part2(input: List<String>): Long {
 }
 
 /**
- * 17592186044416 -> ( 15) [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0]
-35184372088832 -> ( 16) [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4]
-70368744177664 -> ( 16) [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 6]
-140737488355328 -> ( 16) [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0]
+* A mod 8 -> B
+* B xor 1 -> B
+* A / 2^B -> C
+* B xor 5 -> B
+* A / 8 -> A
+* B xor C -> B
+* B % 8 -> OUT
+* repeat if A != 0
  */
 fun guessPart2(program: Program): Long {
     var currProgram = program
 
-    var registerValue = 1073741824L
+    var registerValue = 40000000000006
     do {
         currProgram = currProgram.copy(a = registerValue)
         var executed = execute(currProgram)
         println("${registerValue} -> ( ${executed.out.size}) ${executed.out}")
-        registerValue = registerValue * 2
+        registerValue = registerValue + 8
     } while (executed.out != executed.instr)
 
     return registerValue - 1
