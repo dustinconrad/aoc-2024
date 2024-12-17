@@ -2,6 +2,7 @@ package day17
 
 import readResourceAsBufferedReader
 import java.lang.IllegalArgumentException
+import java.math.BigInteger
 
 fun main() {
     // 7,0,0,1,7,2,2,7,7 wrong
@@ -19,9 +20,9 @@ fun part1(): String {
 
 fun part1(input: List<String>): String {
     val digits = Regex("\\d+")
-    val a = digits.find(input[0])!!.value.toInt()
-    val b = digits.find(input[1])!!.value.toInt()
-    val c = digits.find(input[2])!!.value.toInt()
+    val a = digits.find(input[0])!!.value.toLong()
+    val b = digits.find(input[1])!!.value.toLong()
+    val c = digits.find(input[2])!!.value.toLong()
     val (_, p) = input[4].split(":").map { it.trim() }
     val codes = p.split(",").map { it.toInt() }
 
@@ -32,40 +33,69 @@ fun part1(input: List<String>): String {
     return end.out.joinToString(",")
 }
 
-fun part2(): Int {
+fun part2(): Long {
     val input = readResourceAsBufferedReader("17_1.txt").lines().toList()
     return part2(input)
 }
 
-fun part2(input: List<String>): Int {
-    return 2
+fun part2(input: List<String>): Long {
+    val digits = Regex("\\d+")
+    val a = digits.find(input[0])!!.value.toLong()
+    val b = digits.find(input[1])!!.value.toLong()
+    val c = digits.find(input[2])!!.value.toLong()
+    val (_, p) = input[4].split(":").map { it.trim() }
+    val codes = p.split(",").map { it.toInt() }
+
+    val program = Program(a, b, c, codes)
+
+    return guessPart2(program)
+}
+
+/**
+ * 17592186044416 -> ( 15) [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0]
+35184372088832 -> ( 16) [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4]
+70368744177664 -> ( 16) [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 6]
+140737488355328 -> ( 16) [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0]
+ */
+fun guessPart2(program: Program): Long {
+    var currProgram = program
+
+    var registerValue = 1073741824L
+    do {
+        currProgram = currProgram.copy(a = registerValue)
+        var executed = execute(currProgram)
+        println("${registerValue} -> ( ${executed.out.size}) ${executed.out}")
+        registerValue = registerValue * 2
+    } while (executed.out != executed.instr)
+
+    return registerValue - 1
 }
 
 sealed class OpCode {
 
     abstract fun execute(program: Program): Program
 
-    fun comboOperand(program: Program): Int {
-        val operand = program.instr[program.ip + 1]
+    fun comboOperand(program: Program): Long {
+        val operand = program.instr[program.ip + 1].toLong()
 
         return when(operand) {
-            4 -> program.a
-            5 -> program.b
-            6 -> program.c
+            4L -> program.a
+            5L -> program.b
+            6L -> program.c
             else -> operand
         }
     }
 
-    fun literalOperand(program: Program): Int {
-        return program.instr[program.ip + 1]
+    fun literalOperand(program: Program): Long {
+        return program.instr[program.ip + 1].toLong()
     }
 
     data object Adv : OpCode() {
         override fun execute(program: Program): Program {
             val numerator = program.a
-            val denominator = 1.shl(comboOperand(program))
+            val denominator = BigInteger.valueOf(2L).pow(comboOperand(program).toInt())
             return program.copy(
-                a = numerator / denominator,
+                a = numerator / denominator.toLong(),
                 ip = program.ip + 2
             )
         }
@@ -91,10 +121,10 @@ sealed class OpCode {
 
     data object Jnz : OpCode() {
         override fun execute(program: Program): Program {
-            return if(program.a == 0) {
+            return if(program.a == 0L) {
                 program.copy(ip = program.ip + 2)
             } else {
-                program.copy(ip = literalOperand(program))
+                program.copy(ip = literalOperand(program).toInt())
             }
         }
     }
@@ -111,7 +141,7 @@ sealed class OpCode {
     data object Out : OpCode() {
         override fun execute(program: Program): Program {
             return program.copy(
-                out = program.out + comboOperand(program) % 8,
+                out = program.out + (comboOperand(program) % 8).toInt(),
                 ip = program.ip + 2
             )
         }
@@ -120,9 +150,9 @@ sealed class OpCode {
     data object Bdv : OpCode() {
         override fun execute(program: Program): Program {
             val numerator = program.a
-            val denominator = 1.shl(comboOperand(program))
+            val denominator = BigInteger.valueOf(2L).pow(comboOperand(program).toInt())
             return program.copy(
-                b = numerator / denominator,
+                b = numerator / denominator.toLong(),
                 ip = program.ip + 2
             )
         }
@@ -131,9 +161,9 @@ sealed class OpCode {
     data object Cdv : OpCode() {
         override fun execute(program: Program): Program {
             val numerator = program.a
-            val denominator = 1.shl(comboOperand(program))
+            val denominator = BigInteger.valueOf(2L).pow(comboOperand(program).toInt())
             return program.copy(
-                c = numerator / denominator,
+                c = numerator / denominator.toLong(),
                 ip = program.ip + 2
             )
         }
@@ -161,7 +191,7 @@ sealed class OpCode {
 
 
 
-data class Program(val a: Int, val b: Int, val c: Int, val instr: List<Int>, val out: List<Int> = emptyList(), val ip: Int = 0) {
+data class Program(val a: Long, val b: Long, val c: Long, val instr: List<Int>, val out: List<Int> = emptyList(), val ip: Int = 0) {
 
     val isHalted = ip > instr.lastIndex
 

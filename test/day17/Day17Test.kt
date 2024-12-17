@@ -68,6 +68,19 @@ class Day17Test {
         assertEquals("4,6,3,5,6,3,5,2,1,0", part1(input))
     }
 
+    @Test
+    fun test2_example() {
+        val input = """
+        Register A: 2024
+        Register B: 0
+        Register C: 0
+
+        Program: 0,3,5,4,3,0
+        """.trimIndent().lines()
+
+        assertEquals(117440, part2(input))
+    }
+
 
 
 }
