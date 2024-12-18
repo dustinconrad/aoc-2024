@@ -22,22 +22,28 @@ fun part1(input: List<String>, maxY: Int = 70, maxX: Int = 70): Int {
     val walls = input.take(1024).map {
         val (x, y) = it.split(",").map { n -> n.toInt() }
         y to x
-    }.toSet()
+    }
 
-    return shortestPath(walls, maxY, maxX)
+    return shortestPath(walls, maxY, maxX)[maxY to maxX]!!
 }
 
-fun part2(): Int {
+fun part2(): String {
     val input = readResourceAsBufferedReader("18_1.txt").lines().toList()
-    return part2(input)
+    val result = part2(input)
+    return "${result.second},${result.first}"
 }
 
-fun part2(input: List<String>): Int {
-    return 2
+fun part2(input: List<String>, maxY: Int = 70, maxX: Int = 70): Coord {
+    val walls = input.map {
+        val (x, y) = it.split(",").map { n -> n.toInt() }
+        y to x
+    }
+
+    return shortestPath2(walls, maxY, maxX)
 }
 
-fun shortestPath(walls: Set<Coord>, maxY: Int = 70, maxX: Int = 70): Int {
-
+fun shortestPath(wall: Iterable<Coord>, maxY: Int = 70, maxX: Int = 70): Map<Coord,Int> {
+    val walls = wall.toSet()
     val start = 0 to 0
     val end = maxY to maxX
 
@@ -62,5 +68,24 @@ fun shortestPath(walls: Set<Coord>, maxY: Int = 70, maxX: Int = 70): Int {
             distances[it] = currDist + 1
         }
     }
-    return distances[end]!!
+    return distances
+}
+
+fun shortestPath2(allWalls: List<Coord>, maxY: Int = 70, maxX: Int = 70): Coord {
+    val start = 0 to 0
+    val end = maxY to maxX
+    val walls = ArrayDeque(allWalls)
+
+    var counter = 0
+    while (true) {
+        val result = shortestPath(walls)
+        if (result[end] != null) {
+            return allWalls[allWalls.size - counter]
+        } else {
+            walls.removeLast()
+            counter++
+        }
+    }
+
+
 }
