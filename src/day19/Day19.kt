@@ -24,19 +24,22 @@ fun part1(input: List<String>): Int {
     return validDesigns.count()
 }
 
-fun part2(): Int {
+fun part2(): Long {
     val input = readResourceAsBufferedReader("19_1.txt").lines().toList()
     return part2(input)
 }
 
-fun part2(input: List<String>): Int {
+fun part2(input: List<String>): Long {
     val (available, targets) = input.byEmptyLines()
     val availableTowels = available.split(",").map { it.trim() }
     val desiredDesigns = targets.split("\n")
 
     val options = availableTowels.groupBy { it[0] }
+    val memo = mutableMapOf<String,Long>()
 
-    val ways = desiredDesigns.map { canMake2(options, it) }
+    val valid = desiredDesigns.filter { canMake(options, it) }
+
+    val ways = valid.map { canMake2(options, memo, it) }
 
     return ways.sum()
 }
@@ -61,23 +64,29 @@ fun canMake(options: Map<Char,List<String>>, design: String, startIdx: Int = 0):
     return false
 }
 
-fun canMake2(options: Map<Char,List<String>>, design: String, startIdx: Int = 0): Int {
+fun canMake2(options: Map<Char,List<String>>, memo: MutableMap<String,Long>, design: String, startIdx: Int = 0): Long {
     if (startIdx == design.length) {
-        return 1
+        return 1L
+    }
+    val targetStr = design.substring(startIdx)
+    if (memo.containsKey(targetStr)) {
+        return memo[targetStr]!!
     }
     // match first letter
     val potential = options[design[startIdx]] ?: emptyList()
-    var ways = 0
+    var ways = 0L
     if (potential.isNotEmpty()) {
         for (o in potential) {
             if (design.regionMatches(startIdx, o,0, o.length)) {
-                val rest = canMake2(options, design, startIdx + o.length)
-                if (rest != 0) {
+                val rest = canMake2(options, memo, design, startIdx + o.length)
+                if (rest != 0L) {
                     ways += rest
                 }
             }
         }
     }
+
+    memo[targetStr] = ways
 
     return ways
 }
