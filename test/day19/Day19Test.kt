@@ -23,5 +23,33 @@ bbrgwb
         assertEquals(6, part1(input))
     }
 
+    @Test
+    fun test2_gbbr() {
+        val input = """
+r, wr, b, g, bwu, rb, gb, br
+
+gbbr
+        """.trimIndent().lines()
+
+        assertEquals(4, part2(input))
+    }
+
+    @Test
+    fun test2() {
+        val input = """
+r, wr, b, g, bwu, rb, gb, br
+
+brwrr
+bggr
+gbbr
+rrbgbr
+ubwu
+bwurrg
+brgr
+bbrgwb
+        """.trimIndent().lines()
+
+        assertEquals(16, part2(input))
+    }
 
 }

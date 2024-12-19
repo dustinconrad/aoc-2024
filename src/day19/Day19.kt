@@ -30,10 +30,16 @@ fun part2(): Int {
 }
 
 fun part2(input: List<String>): Int {
-    return 2
+    val (available, targets) = input.byEmptyLines()
+    val availableTowels = available.split(",").map { it.trim() }
+    val desiredDesigns = targets.split("\n")
+
+    val options = availableTowels.groupBy { it[0] }
+
+    val ways = desiredDesigns.map { canMake2(options, it) }
+
+    return ways.sum()
 }
-
-
 
 fun canMake(options: Map<Char,List<String>>, design: String, startIdx: Int = 0): Boolean {
     if (startIdx == design.length) {
@@ -53,4 +59,25 @@ fun canMake(options: Map<Char,List<String>>, design: String, startIdx: Int = 0):
     }
 
     return false
+}
+
+fun canMake2(options: Map<Char,List<String>>, design: String, startIdx: Int = 0): Int {
+    if (startIdx == design.length) {
+        return 1
+    }
+    // match first letter
+    val potential = options[design[startIdx]] ?: emptyList()
+    var ways = 0
+    if (potential.isNotEmpty()) {
+        for (o in potential) {
+            if (design.regionMatches(startIdx, o,0, o.length)) {
+                val rest = canMake2(options, design, startIdx + o.length)
+                if (rest != 0) {
+                    ways += rest
+                }
+            }
+        }
+    }
+
+    return ways
 }
