@@ -1,27 +1,56 @@
 package day19
 
+import byEmptyLines
 import readResourceAsBufferedReader
 
 fun main() {
-    // 140 wrong
     println("Part 1: ${part1()}")
     println("Part 2: ${part2()}")
 }
 
 fun part1(): Int {
-    val input = readResourceAsBufferedReader("18_1.txt").lines().toList()
+    val input = readResourceAsBufferedReader("19_1.txt").lines().toList()
     return part1(input)
 }
 
 fun part1(input: List<String>): Int {
-    return 1
+    val (available, targets) = input.byEmptyLines()
+    val availableTowels = available.split(",").map { it.trim() }
+    val desiredDesigns = targets.split("\n")
+
+    val options = availableTowels.groupBy { it[0] }
+
+    val validDesigns = desiredDesigns.filter { canMake(options, it) }
+    return validDesigns.count()
 }
 
 fun part2(): Int {
-    val input = readResourceAsBufferedReader("18_1.txt").lines().toList()
+    val input = readResourceAsBufferedReader("19_1.txt").lines().toList()
     return part2(input)
 }
 
 fun part2(input: List<String>): Int {
     return 2
+}
+
+
+
+fun canMake(options: Map<Char,List<String>>, design: String, startIdx: Int = 0): Boolean {
+    if (startIdx == design.length) {
+        return true
+    }
+    // match first letter
+    val potential = options[design[startIdx]] ?: emptyList()
+    if (potential.isNotEmpty()) {
+        for (o in potential) {
+            if (design.regionMatches(startIdx, o,0, o.length)) {
+                if (canMake(options, design, startIdx + o.length)) {
+                    return true
+                }
+            }
+        }
+
+    }
+
+    return false
 }
