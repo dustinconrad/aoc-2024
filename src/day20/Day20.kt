@@ -25,13 +25,16 @@ fun part1(input: List<String>): Int {
     return allShortcuts.count { it >= 100 }
 }
 
-fun part2(): Long {
+fun part2(): Int {
     val input = readResourceAsBufferedReader("20_1.txt").lines().toList()
     return part2(input)
 }
 
-fun part2(input: List<String>): Long {
-    return 2
+fun part2(input: List<String>): Int {
+    val shortestPaths = shortestPaths(input)
+    val allShortcuts = allShortcuts(input, shortestPaths, 20)
+
+    return allShortcuts.count { it >= 100 }
 }
 
 fun shortestPaths(grid: List<String>): Map<Coord, Int> {
@@ -57,16 +60,16 @@ fun shortestPaths(grid: List<String>): Map<Coord, Int> {
 fun shortcut(grid: List<String>, shortestPaths: Map<Coord, Int>, c: Coord, manhattanDistance: Int = 2): List<Int> {
     val currPath = shortestPaths[c]!!
 
-
-
     val candidates = (c.first - manhattanDistance .. c.first + manhattanDistance).flatMap { y ->
         (c.second - manhattanDistance .. c.second + manhattanDistance).map { x -> y to x  } }
         .filter { (y, x) -> y in 0 .. grid.lastIndex && x in 0 .. grid[0].lastIndex }
         .filter { manhattanDistance(c, it) <= manhattanDistance }
-        .filter { shortestPaths.getOrDefault(it, Int.MAX_VALUE - 2) + 2 < currPath }
+        .filter {
+            shortestPaths.getOrDefault(it, Int.MAX_VALUE - manhattanDistance) + manhattanDistance(it, c) < currPath
+        }
 
     return candidates
-        .map { currPath - (shortestPaths[it]!! + 2) }
+        .map { currPath - (shortestPaths[it]!! + manhattanDistance(it, c)) }
 }
 
 fun allShortcuts(grid: List<String>, shortestPaths: Map<Coord, Int>, manhattanDistance: Int = 2): List<Int> {
